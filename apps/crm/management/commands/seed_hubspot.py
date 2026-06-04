@@ -103,7 +103,7 @@ class Command(BaseCommand):
 
         num_contacts = options["contacts"]
         num_deals = options["deals"]
-        rng = random.Random(42)
+        rng = random.Random(7)
 
         self.stdout.write(f"Seeding {num_contacts} contacts...")
         contact_ids = []
@@ -121,6 +121,10 @@ class Command(BaseCommand):
             }
             try:
                 result = _post("/crm/v3/objects/contacts", data, label=email)
+                if result is None:
+                    self.stdout.write(f"  [{i+1}/{num_contacts}] {email} (exists)")
+                    time.sleep(0.12)
+                    continue
                 contact_ids.append(result["id"])
                 contact_emails.append(email)
                 self.stdout.write(f"  [{i+1}/{num_contacts}] {email}")

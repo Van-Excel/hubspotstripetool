@@ -107,6 +107,7 @@ export interface AuditLog {
   user_email: string | null
   old_values: Record<string, unknown> | null
   new_values: Record<string, unknown> | null
+  ip_address: string | null
   created: string
 }
 

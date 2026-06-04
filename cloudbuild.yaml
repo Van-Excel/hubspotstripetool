@@ -1,0 +1,30 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', '${_ARTIFACT_REPO}/recon-api:${_TAG}', '.']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', '${_ARTIFACT_REPO}/recon-api:${_TAG}']
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud run deploy ${_SERVICE_NAME} \
+          --image=${_ARTIFACT_REPO}/recon-api:${_TAG} \
+          --region=${_REGION} \
+          --platform=managed \
+          --allow-unauthenticated \
+          --add-cloudsql-instances=${_DB_CONNECTION_NAME} \
+          --set-secrets=DJANGO_SECRET_KEY=django-secret-key:latest,HUBSPOT_ACCESS_TOKEN=hubspot-access-token:latest,STRIPE_SECRET_KEY=stripe-secret-key:latest,DATABASE_URL=database-url:latest \
+          --set-env-vars=DJANGO_DEBUG=False,ALLOWED_HOSTS=*
+
+substitutions:
+  _ARTIFACT_REPO: us-central1-docker.pkg.dev/project-767e9e9d-bea6-40ac-bf3/recon-app
+  _REGION: us-central1
+  _SERVICE_NAME: recon-api
+  _DB_CONNECTION_NAME: project-767e9e9d-bea6-40ac-bf3:us-central1:recon-db
+  _TAG: latest
+
+images:
+  - '${_ARTIFACT_REPO}/recon-api:${_TAG}'

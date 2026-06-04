@@ -1,4 +1,5 @@
 import json
+import os
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -9,19 +10,54 @@ from django.db.models import Sum, Count, Q
 from apps.accounts.permissions import HasPermission
 from apps.payments.models import PaymentTransaction
 from apps.payments.serializers import PaymentTransactionSerializer, PaymentStatsSerializer
-from apps.payments.tasks import sync_stripe_payments, handle_stripe_webhook
 from apps.payments.services.stripe_client import StripeClient
+from apps.accounts.models import Account
+import stripe
 
 
 class PaymentSyncView(APIView):
     permission_classes = [HasPermission("trigger_sync")]
 
     def post(self, request):
-        task = sync_stripe_payments.delay()
-        return Response(
-            {"message": "Stripe payment sync started", "task_id": task.id},
-            status=status.HTTP_202_ACCEPTED,
-        )
+        account = Account.objects.first()
+        if not account:
+            return Response({"error": "No account found"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
+        imported = 0
+        from apps.payments.models import PaymentProviderRecord
+        from django.utils import timezone
+        try:
+            for pi in stripe.PaymentIntent.list(limit=100).auto_paging_iter():
+                pi_id = pi.id
+                email = pi.receipt_email or ""
+                amount = float(pi.amount) / 100
+                status = "succeeded" if pi.status == "succeeded" else "failed"
+                tx, _ = PaymentTransaction.objects.update_or_create(
+                    stripe_payment_intent_id=pi_id,
+                    defaults={
+                        "account": account,
+                        "customer_email": email,
+                        "amount": amount,
+                        "currency": pi.currency or "usd",
+                        "provider": "stripe",
+                        "status": status,
+                        "raw_data": pi.to_dict() if hasattr(pi, "to_dict") else {},
+                        "synced_at": timezone.now(),
+                    },
+                )
+                PaymentProviderRecord.objects.update_or_create(
+                    transaction=tx,
+                    defaults={
+                        "provider_payment_id": pi_id,
+                        "provider_status": pi.status,
+                        "amount_charged": amount,
+                        "webhook_received_at": timezone.now(),
+                    },
+                )
+                imported += 1
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({"message": f"Stripe sync complete", "imported": imported})
 
 
 class PaymentTransactionListView(generics.ListAPIView):
@@ -78,5 +114,17 @@ class StripeWebhookView(APIView):
         except json.JSONDecodeError:
             return Response({"error": "Invalid JSON"}, status=status.HTTP_400_BAD_REQUEST)
 
-        handle_stripe_webhook.delay(event_data)
+        event_type = event_data.get("type", "")
+        data = event_data.get("data", {}).get("object", {})
+
+        if event_type in ("payment_intent.succeeded", "payment_intent.payment_failed"):
+            pi_id = data.get("id", "")
+            if pi_id:
+                try:
+                    tx = PaymentTransaction.objects.get(stripe_payment_intent_id=pi_id)
+                    tx.status = "succeeded" if event_type.endswith("succeeded") else "failed"
+                    tx.save(update_fields=["status", "updated"])
+                except PaymentTransaction.DoesNotExist:
+                    pass
+
         return Response({"status": "received"}, status=status.HTTP_200_OK)

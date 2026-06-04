@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Dialog } from '@/components/ui/dialog'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import type { Anomaly } from '@/types'
+import { CheckCircle2 } from 'lucide-react'
 
 export default function AnomaliesPage() {
   const [filters, setFilters] = useState<Record<string, string>>({})
@@ -86,8 +87,18 @@ export default function AnomaliesPage() {
                     )}
                   </TableCell>
                   <TableCell className="text-muted-foreground text-xs">{formatDate(a.created)}</TableCell>
-                  <TableCell>
-                    {!a.is_resolved && (
+                    <TableCell>
+                    {a.is_resolved ? (
+                      <div className="flex flex-col gap-0.5">
+                        <span className="inline-flex items-center gap-1 text-[#3B6D11] text-[13px] font-medium">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          Resolved
+                        </span>
+                        <span className="text-[11px] text-muted-foreground">
+                          via {a.resolution?.resolution_type?.replace(/_/g, ' ') ?? 'manual review'}
+                        </span>
+                      </div>
+                    ) : (
                       <Button size="sm" variant="outline" onClick={() => setSelected(a)}>
                         Resolve
                       </Button>

@@ -7,23 +7,29 @@ from django.db.models import Count, Q
 
 from apps.accounts.permissions import HasPermission
 from apps.reconciliation.models import ReconciliationRun, Anomaly, Resolution
+from apps.reconciliation.engine import ReconciliationEngine
+from apps.accounts.models import Account
 from apps.reconciliation.serializers import (
     ReconciliationRunSerializer,
     AnomalySerializer,
     DashboardSerializer,
 )
-from apps.reconciliation.tasks import run_reconciliation
 
 
 class ReconciliationRunTriggerView(APIView):
     permission_classes = [HasPermission("run_reconciliation")]
 
     def post(self, request):
-        task = run_reconciliation.delay()
-        return Response(
-            {"message": "Reconciliation started", "task_id": task.id},
-            status=status.HTTP_202_ACCEPTED,
-        )
+        account = Account.objects.first()
+        if not account:
+            return Response({"error": "No account found"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        engine = ReconciliationEngine()
+        run = engine.run(account)
+        return Response({
+            "message": "Reconciliation complete",
+            "anomalies_found": run.anomalies_found,
+            "deals_processed": run.deals_processed,
+        })
 
 
 class RunHistoryView(generics.ListAPIView):

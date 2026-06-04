@@ -12,7 +12,9 @@ from apps.crm.serializers import (
     DealDetailSerializer,
     SyncLogSerializer,
 )
-from apps.crm.tasks import sync_hubspot_all
+from apps.crm.services.hubspot_client import HubSpotClient
+from apps.crm.services.sync import sync_owners, sync_contacts, sync_deals
+from apps.accounts.models import Account
 
 
 class CustomerListView(generics.ListAPIView):
@@ -51,11 +53,18 @@ class SyncTriggerView(APIView):
     permission_classes = [HasPermission("trigger_sync")]
 
     def post(self, request):
-        task = sync_hubspot_all.delay()
-        return Response(
-            {"message": "HubSpot sync started", "task_id": task.id},
-            status=status.HTTP_202_ACCEPTED,
-        )
+        account = Account.objects.first()
+        if not account:
+            return Response({"error": "No account found"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        client = HubSpotClient()
+        log1 = sync_owners(account, client)
+        log2 = sync_contacts(account, client)
+        log3 = sync_deals(account, client)
+        return Response({
+            "message": "HubSpot sync complete",
+            "contacts": f"{log2.records_created} created, {log2.records_updated} updated",
+            "deals": f"{log3.records_created} created, {log3.records_updated} updated",
+        })
 
 
 class SyncLogView(generics.ListAPIView):

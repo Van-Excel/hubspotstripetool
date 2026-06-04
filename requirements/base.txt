@@ -11,3 +11,5 @@ requests>=2.31
 uuid6>=2024.0
 python-dotenv>=1.0
 gunicorn>=22.0
+dj-database-url
+

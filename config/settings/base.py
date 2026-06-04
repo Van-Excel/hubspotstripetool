@@ -1,6 +1,8 @@
 import os
 from datetime import timedelta
 
+import dj_database_url
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-secret-change-me")
@@ -61,17 +63,19 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 AUTH_USER_MODEL = "accounts.User"
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("DB_NAME", "reconciliation_db"),
-        "USER": os.environ.get("DB_USER", "postgres"),
-        "PASSWORD": os.environ.get("DB_PASSWORD", "postgres"),
-        "HOST": os.environ.get("DB_HOST", "db"),
-        "PORT": os.environ.get("DB_PORT", "5432"),
-    }
-}
 
+DATABASE_URL = (
+    f"postgresql://{os.environ['DB_USER']}:"
+    f"{os.environ['DB_PASSWORD']}@/"
+    f"{os.environ['DB_NAME']}?"
+    f"host={os.environ['DB_HOST']}"
+)
+DATABASES = {
+    "default": dj_database_url.parse(
+        DATABASE_URL,
+        conn_max_age=600,
+    )
+}
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
