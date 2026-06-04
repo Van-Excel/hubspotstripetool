@@ -75,8 +75,8 @@ export default function AnomaliesPage() {
                 <TableRow key={a.identifier}>
                   <TableCell><AnomalyBadge anomaly={a} /></TableCell>
                   <TableCell><SeverityBadge severity={a.severity} /></TableCell>
-                  <TableCell className="font-mono text-xs max-w-[140px] truncate">{a.deal_name ?? '—'}</TableCell>
-                  <TableCell className="text-muted-foreground">{a.customer_email ?? '—'}</TableCell>
+                  <TableCell className="font-mono text-xs max-w-[140px] truncate">{a.deal_name || '—'}</TableCell>
+                  <TableCell className="text-muted-foreground">{a.customer_email || '—'}</TableCell>
                   <TableCell className="font-mono">{a.expected_amount ? formatCurrency(parseFloat(a.expected_amount)) : '—'}</TableCell>
                   <TableCell className="font-mono">{a.actual_amount ? formatCurrency(parseFloat(a.actual_amount)) : '—'}</TableCell>
                   <TableCell>
@@ -121,7 +121,7 @@ export default function AnomaliesPage() {
           <div className="space-y-4">
             <div className="text-sm space-y-1">
               <p><span className="text-muted-foreground">Type:</span> <AnomalyBadge anomaly={selected} /></p>
-              <p><span className="text-muted-foreground">Deal:</span> {selected.deal_name ?? '—'}</p>
+              <p><span className="text-muted-foreground">Deal:</span> {selected.deal_name || '—'}</p>
               <p className="text-muted-foreground">{selected.description}</p>
             </div>
             <textarea

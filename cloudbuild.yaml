@@ -28,3 +28,6 @@ substitutions:
 
 images:
   - '${_ARTIFACT_REPO}/recon-api:${_TAG}'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

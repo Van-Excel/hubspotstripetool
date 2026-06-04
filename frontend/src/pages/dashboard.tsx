@@ -78,8 +78,8 @@ export default function DashboardPage() {
                   <TableRow key={a.identifier}>
                     <TableCell><AnomalyBadge anomaly={a} /></TableCell>
                     <TableCell><SeverityBadge severity={a.severity} /></TableCell>
-                    <TableCell className="font-mono text-xs">{a.deal_name ?? '—'}</TableCell>
-                    <TableCell className="text-muted-foreground">{a.customer_email ?? '—'}</TableCell>
+                    <TableCell className="font-mono text-xs">{a.deal_name || '—'}</TableCell>
+                    <TableCell className="text-muted-foreground">{a.customer_email || '—'}</TableCell>
                     <TableCell className="font-mono">{a.expected_amount ? formatCurrency(parseFloat(a.expected_amount)) : '—'}</TableCell>
                     <TableCell className="font-mono">{a.actual_amount ? formatCurrency(parseFloat(a.actual_amount)) : '—'}</TableCell>
                     <TableCell className="text-muted-foreground">{formatDate(a.created)}</TableCell>
