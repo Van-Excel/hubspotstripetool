@@ -11,7 +11,7 @@ BASE_URL = "https://api.hubapi.com"
 
 class HubSpotClient:
     def __init__(self, access_token: Optional[str] = None):
-        self.access_token = access_token or os.environ.get("HUBSPOT_ACCESS_TOKEN", "")
+        self.access_token = access_token or os.environ.get("HUBSPOT_ACCESS_TOKEN", "").strip()
         self.session = requests.Session()
         self.session.headers.update(
             {

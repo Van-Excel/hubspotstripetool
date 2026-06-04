@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class StripeClient(BasePaymentProvider):
     def __init__(self, secret_key: str | None = None):
-        self.secret_key = secret_key or os.environ.get("STRIPE_SECRET_KEY", "")
+        self.secret_key = secret_key or os.environ.get("STRIPE_SECRET_KEY", "").strip()
         stripe.api_key = self.secret_key
 
     def fetch_payments(self, limit: int = 100, starting_after: str | None = None) -> dict:

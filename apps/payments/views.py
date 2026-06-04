@@ -22,7 +22,7 @@ class PaymentSyncView(APIView):
         account = Account.objects.first()
         if not account:
             return Response({"error": "No account found"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
+        stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "").strip()
         imported = 0
         from apps.payments.models import PaymentProviderRecord
         from django.utils import timezone

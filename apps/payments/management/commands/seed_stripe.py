@@ -5,8 +5,8 @@ import requests
 import stripe
 from django.core.management.base import BaseCommand
 
-HS_TOKEN = os.environ.get("HUBSPOT_ACCESS_TOKEN", "")
-STRIPE_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
+HS_TOKEN = os.environ.get("HUBSPOT_ACCESS_TOKEN", "").strip()
+STRIPE_KEY = os.environ.get("STRIPE_SECRET_KEY", "").strip()
 BASE = "https://api.hubapi.com"
 HS_HEADERS = {"Authorization": f"Bearer {HS_TOKEN}", "Content-Type": "application/json"}
 
@@ -61,7 +61,7 @@ class Command(BaseCommand):
             self.stderr.write("HUBSPOT_ACCESS_TOKEN not set. Aborting.")
             return
 
-        stripe.api_key = STRIPE_KEY
+        stripe.api_key = STRIPE_KEY.strip()
         rng = random.Random(42)
 
         self.stdout.write("Fetching HubSpot deals...")

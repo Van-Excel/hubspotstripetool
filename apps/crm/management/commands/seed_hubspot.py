@@ -5,7 +5,7 @@ import random
 import time
 from django.core.management.base import BaseCommand
 
-HUBSPOT_TOKEN = os.environ.get("HUBSPOT_ACCESS_TOKEN", "")
+HUBSPOT_TOKEN = os.environ.get("HUBSPOT_ACCESS_TOKEN", "").strip()
 BASE_URL = "https://api.hubapi.com"
 HEADERS = {
     "Authorization": f"Bearer {HUBSPOT_TOKEN}",
