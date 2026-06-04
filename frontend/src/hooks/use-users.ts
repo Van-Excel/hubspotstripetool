@@ -2,10 +2,10 @@ import api from '@/lib/api'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { User, PaginatedResponse } from '@/types'
 
-export function useUsers() {
+export function useUsers(filters: Record<string, string> = {}) {
   return useQuery<PaginatedResponse<User>>({
-    queryKey: ['users'],
-    queryFn: () => api.get('/admin/users/').then((r) => r.data),
+    queryKey: ['users', filters],
+    queryFn: () => api.get('/admin/users/', { params: filters }).then((r) => r.data),
   })
 }
 

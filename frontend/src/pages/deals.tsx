@@ -1,11 +1,15 @@
 import { useState } from 'react'
 import { useDeals } from '@/hooks/use-deals'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Pagination } from '@/components/pagination'
 import { formatCurrency, formatDate } from '@/lib/utils'
 
 export default function DealsPage() {
   const [stage, setStage] = useState('')
-  const { data, isLoading } = useDeals(stage ? { stage } : {})
+  const [page, setPage] = useState(1)
+  const filters: Record<string, string> = { page: String(page) }
+  if (stage) filters.stage = stage
+  const { data, isLoading } = useDeals(filters)
 
   return (
     <div className="space-y-6">
@@ -25,32 +29,35 @@ export default function DealsPage() {
       </div>
 
       {data?.results?.length ? (
-        <div className="rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Deal</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Stage</TableHead>
-                <TableHead>Closed Won</TableHead>
-                <TableHead>Synced</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.results.map((d) => (
-                <TableRow key={d.identifier}>
-                  <TableCell className="font-medium">{d.deal_name}</TableCell>
-                  <TableCell className="text-muted-foreground">{d.customer_email}</TableCell>
-                  <TableCell className="font-mono">{formatCurrency(parseFloat(d.amount))}</TableCell>
-                  <TableCell className="capitalize text-xs">{d.stage}</TableCell>
-                  <TableCell className="text-muted-foreground text-xs">{formatDate(d.closed_won_at)}</TableCell>
-                  <TableCell className="text-muted-foreground text-xs">{formatDate(d.synced_at)}</TableCell>
+        <>
+          <div className="rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Deal</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Stage</TableHead>
+                  <TableHead>Closed Won</TableHead>
+                  <TableHead>Synced</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {data.results.map((d) => (
+                  <TableRow key={d.identifier}>
+                    <TableCell className="font-medium">{d.deal_name}</TableCell>
+                    <TableCell className="text-muted-foreground">{d.customer_email}</TableCell>
+                    <TableCell className="font-mono">{formatCurrency(parseFloat(d.amount))}</TableCell>
+                    <TableCell className="capitalize text-xs">{d.stage}</TableCell>
+                    <TableCell className="text-muted-foreground text-xs">{formatDate(d.closed_won_at)}</TableCell>
+                    <TableCell className="text-muted-foreground text-xs">{formatDate(d.synced_at)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <Pagination page={page} pageSize={25} total={data.count} onPageChange={setPage} />
+        </>
       ) : (
         <p className="text-muted-foreground py-12 text-center">{isLoading ? 'Loading...' : 'No deals.'}</p>
       )}

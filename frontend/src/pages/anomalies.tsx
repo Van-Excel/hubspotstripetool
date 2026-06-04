@@ -5,13 +5,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Dialog } from '@/components/ui/dialog'
+import { Pagination } from '@/components/pagination'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import type { Anomaly } from '@/types'
 import { CheckCircle2 } from 'lucide-react'
 
 export default function AnomaliesPage() {
   const [filters, setFilters] = useState<Record<string, string>>({})
-  const { data, isLoading } = useAnomalies(filters)
+  const [page, setPage] = useState(1)
+  const { data, isLoading } = useAnomalies({ ...filters, page })
   const resolveMutation = useResolveAnomaly()
   const [selected, setSelected] = useState<Anomaly | null>(null)
   const [notes, setNotes] = useState('')
@@ -55,6 +57,7 @@ export default function AnomaliesPage() {
       </div>
 
       {data?.results?.length ? (
+        <>
         <div className="rounded-lg border">
           <Table>
             <TableHeader>
@@ -109,6 +112,13 @@ export default function AnomaliesPage() {
             </TableBody>
           </Table>
         </div>
+        <Pagination
+          page={page}
+          pageSize={25}
+          total={data.count}
+          onPageChange={setPage}
+        />
+        </>
       ) : (
         <p className="text-muted-foreground py-12 text-center">
           {isLoading ? 'Loading...' : 'No anomalies found.'}

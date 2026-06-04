@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { usePayments } from '@/hooks/use-payments'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import { Pagination } from '@/components/pagination'
 import { formatCurrency, formatDate } from '@/lib/utils'
 
 const statusColor: Record<string, 'high' | 'low' | 'medium'> = {
@@ -14,7 +15,11 @@ const statusColor: Record<string, 'high' | 'low' | 'medium'> = {
 
 export default function PaymentsPage() {
   const [statusFilter, setStatusFilter] = useState('')
-  const { data, isLoading } = usePayments(statusFilter ? { status: statusFilter } : {})
+  const [page, setPage] = useState(1)
+  const filters: Record<string, string> = {}
+  if (statusFilter) filters.status = statusFilter
+  filters.page = String(page)
+  const { data, isLoading } = usePayments(filters)
 
   return (
     <div className="space-y-6">
@@ -34,7 +39,8 @@ export default function PaymentsPage() {
       </div>
 
       {data?.results?.length ? (
-        <div className="rounded-lg border">
+        <>
+          <div className="rounded-lg border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -64,9 +70,13 @@ export default function PaymentsPage() {
             </TableBody>
           </Table>
         </div>
+        <Pagination page={page} pageSize={25} total={data.count} onPageChange={setPage} />
+        </>
       ) : (
         <p className="text-muted-foreground py-12 text-center">{isLoading ? 'Loading...' : 'No payments.'}</p>
       )}
     </div>
   )
 }
+
+
