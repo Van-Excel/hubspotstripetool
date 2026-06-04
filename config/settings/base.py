@@ -64,15 +64,15 @@ WSGI_APPLICATION = "config.wsgi.application"
 AUTH_USER_MODEL = "accounts.User"
 
 
-DATABASE_URL = (
-    f"postgresql://{os.environ['DB_USER']}:"
-    f"{os.environ['DB_PASSWORD']}@/"
-    f"{os.environ['DB_NAME']}?"
-    f"host={os.environ['DB_HOST']}"
-)
+# DATABASE_URL = (
+#     f"postgresql://{os.environ['DB_USER']}:"
+#     f"{os.environ['DB_PASSWORD']}@/"
+#     f"{os.environ['DB_NAME']}?"
+#     f"host={os.environ['DB_HOST']}"
+# )
 DATABASES = {
     "default": dj_database_url.parse(
-        DATABASE_URL,
+        os.environ["DATABASE_URL"],
         conn_max_age=600,
     )
 }
